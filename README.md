@@ -1,1 +1,3 @@
-# infoworks-data-generator
+# InfoWorks ICM Data Generator
+
+BSc Project - Joren Hessels
