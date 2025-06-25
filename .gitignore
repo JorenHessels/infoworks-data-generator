@@ -1,0 +1,7 @@
+./database/*
+./generated_data/network_exports/*
+./generated_data/simulation_results/*
+./gui_app/networks.txt
+./gui_app/rainfalls.txt
+./gui_app/__pychache__
+./notes.txt
