@@ -55,6 +55,11 @@ def submit():
                 for i in infiltration_values:
                     run_simulation(n_id, rf, r_type, r, w, i)
 
+#Making folder for data
+folder = os.getcwd() + "\\generated_data\\simulation_results"
+if not os.path.exists(folder):
+    os.makedirs(f"{folder}")
+
 # Extracting Network and Rainfalls from database.
 path = os.getcwd() + "\\gui_app"
 if not os.path.exists(f'{path}\\networks.txt') or not os.path.exists(f'{path}\\networks.txt'):
@@ -70,7 +75,8 @@ rainfalls = rainfall_parser.get_entries()
 
 # TODO: Add network exporting
 path = os.getcwd() + "\\generated_data\\network_exports"
-if len(os.listdir(path)) == 0:
+if not os.path.exists(path):
+    os.makedirs(os.getcwd() + "\\generated_data\\network_exports")
     for n in networks:
         os.system(f"export_graph.bat {n.id}")
 
