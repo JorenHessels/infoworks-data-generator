@@ -1,8 +1,7 @@
 import os
-import numpy as np
 import tkinter as tk
 from tkinter import ttk
-from file_parser import FileParser, Path
+from file_parser import FileParser
 
 def name_to_id(paths, name):
     for p in paths:
@@ -13,6 +12,12 @@ def run_simulation(network_id, rainfall_id, roughness_type, roughness_value, wei
     print(f"Attempting N:{network_id} RFID:{rainfall_id} RT:{roughness_type} RV:{roughness_value} WDC:{weir_coefficient} II:{initial_infiltration}")
     os.system(f"generator.bat {network_id} {rainfall_id} {roughness_type} {roughness_value} {weir_coefficient} {initial_infiltration}")
 
+def linspace(min, max, steps):
+    if steps <= 1:
+        return [min]
+    step = (max - min) / (steps - 1)
+    return [min + i * step for i in range(steps)]
+
 def get_values_from_tuple(tuple):
     min = float(tuple[0])
     max = float(tuple[1])
@@ -21,7 +26,7 @@ def get_values_from_tuple(tuple):
     if min==max or steps == 0:
         values = [min]
     else:
-        values = np.linspace(min, max, steps)
+        values = linspace(min, max, steps)
     return values
 
 
@@ -41,7 +46,7 @@ def submit():
     infiltration_values = get_values_from_tuple(infiltration)
 
     root.destroy()
-    
+
     for rf in selected_rainfalls:
         for r in roughness_values:
             for w in weir_values:
