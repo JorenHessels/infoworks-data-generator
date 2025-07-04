@@ -67,10 +67,15 @@ def set_roughness(type, network, value)
   on.transaction_begin
 
   on.row_objects('hw_conduit').each do |conduit|
-    conduit.roughness_type = type
-    conduit["top_roughness_#{rt}"] = value
-    conduit["bottom_roughness_#{rt}"] = value
-    conduit.write
+    if conduit["top_roughness_#{rt}"] != value
+      conduit.roughness_type = type
+      conduit["top_roughness_#{rt}"] = value
+      conduit["bottom_roughness_#{rt}"] = value
+      conduit.write
+    else
+      on.transaction_rollback
+      return
+    end
   end
 
   on.transaction_commit
@@ -78,7 +83,6 @@ def set_roughness(type, network, value)
   network.commit "changed #{type} roughness"
 end
 
-#TODO: Optimize Value changes?
 def set_weir_coefficient(network, value)
   on = network.open
   on.current_scenario=SCENARIO
@@ -89,6 +93,9 @@ def set_weir_coefficient(network, value)
     if weir.discharge_coeff != value
       weir.discharge_coeff = value
       weir.write     
+    else
+      on.transaction_rollback
+      return
     end
   end
 
@@ -107,6 +114,9 @@ def set_infiltration(network, value)
     if ros.initial_infiltration != value
       ros.initial_infiltration = value
       ros.write
+    else
+      on.transaction_rollback
+      return
     end
   end
 
@@ -115,14 +125,14 @@ def set_infiltration(network, value)
   network.commit 'changed initial infiltration for runoff surface'
 end
 
-def add_scenario(network, name)
+def add_scenario(network, name, based_on)
     on = network.open
     on.scenarios do |s|
       if name == s
         return
       end
     end
-    on.add_scenario(name, 'Base', "Created for data generation")
+    on.add_scenario(name, based_on, "Created for data generation")
 end
 
 # Select database from current path
@@ -140,7 +150,7 @@ network = db.model_object_from_type_and_id('Model Network', network_id)
 rainfall_id = ARGV[3].to_i
 rainfall = db.model_object_from_type_and_id('Rainfall Event', rainfall_id)
 
-add_scenario(network, SCENARIO)
+add_scenario(network, SCENARIO, 'Base')
 
 # Loading roughness from arguments
 TYPES = {

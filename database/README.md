@@ -1,6 +1,6 @@
 ### Database Instructions
 
-In orde for the application to have the ability to access your database, it needs a `Standalone.icmm` file, along with the data folder with the GUID of your database.
+In order for the application to have the ability to access your database, it needs a `Standalone.icmm` file, along with the data folder with the GUID of your database.
 
 For example:\
 📦database \

@@ -13,11 +13,10 @@ directory = File.dirname(__FILE__)
 db_file="#{directory}\\database\\Standalone.icmm"
 
 db = WSApplication.open db_file,false
-mo = db.model_object_from_type_and_id('Model Group', 1)
+mo = db.root_model_objects()[0]
 
 # Rainfalls
 file_name = "gui_app\\rainfalls.txt"
-
 if !File.exist?(file_name)
   file = File.new(file_name, 'a')
   get_file_paths(mo, 'Rainfall Event', file)
@@ -31,5 +30,3 @@ if !File.exist?(file_name)
   get_file_paths(mo, 'Model Network', file)
   file.close
 end
-
-
