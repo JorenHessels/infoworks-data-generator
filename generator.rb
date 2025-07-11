@@ -2,6 +2,7 @@ require 'Win32API'
 require 'date'
 
 SCENARIO = "Generator"
+BASED_ON = "Base"
 
 $uuid_create = Win32API.new('rpcrt4', 'UuidCreate', 'P', 'L')
 def new_guid
@@ -26,7 +27,7 @@ def create_metadata_file(guid, nid, rfid, rt, rv, wcv, iiv)
     file.puts("roughness_type: #{rt}")
     file.puts("roughness_value: #{rv}")
     file.puts("weir_coefficient: #{wcv}")
-    file.puts("initial_infilatration: #{iiv}")
+    file.puts("initial_infiltration: #{iiv}")
   end
 end
 
@@ -50,7 +51,6 @@ def run_simulation(guid, mo, network, rainfall, scenario, params)
     puts "Run End Status: #{sim.status}"
     puts "Exporting Results..."
     sim.results_csv_export_ex(nil, [['Node',['depnod','flooddepth']]], output_directory)
-    # sim.results_csv_export_ex(nil, [['Node',['flooddepth']]], output_directory)
   end
   return true
 end
@@ -101,7 +101,7 @@ def set_weir_coefficient(network, value)
 
   on.transaction_commit
   validate_network(on)
-  network.commit 'changed weir discharge coefficent'
+  network.commit 'changed weir discharge coefficient'
 end
 
 def set_infiltration(network, value)
@@ -150,7 +150,7 @@ network = db.model_object_from_type_and_id('Model Network', network_id)
 rainfall_id = ARGV[3].to_i
 rainfall = db.model_object_from_type_and_id('Rainfall Event', rainfall_id)
 
-add_scenario(network, SCENARIO, 'Base')
+add_scenario(network, SCENARIO, BASED_ON)
 
 # Loading roughness from arguments
 TYPES = {
