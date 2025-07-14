@@ -10,8 +10,8 @@ def name_to_id(paths, name):
         if p.short == name:
             return p.id
         
-def run_simulation(network_id, rainfall_id, roughness_type, roughness_value, weir_coefficient, initial_infiltration):
-    print(f"Attempting N:{network_id} RFID:{rainfall_id} RT:{roughness_type} RV:{roughness_value} WDC:{weir_coefficient} II:{initial_infiltration}")
+def run_simulation(network_id, rainfall_id, roughness_type, roughness_value, weir_coefficient, initial_infiltration, count, total):
+    print(f"Currently running: N:{network_id} R:{rainfall_id} RT:{roughness_type} RV:{roughness_value} WC:{weir_coefficient} II:{initial_infiltration} Progress:{count}/{total}")
     os.system(f"generator.bat {network_id} {rainfall_id} {roughness_type} {roughness_value} {weir_coefficient} {initial_infiltration}")
 
 def linspace(min, max, steps):
@@ -31,7 +31,6 @@ def get_values_from_tuple(tuple):
         values = linspace(min, max, steps)
     return values
 
-
 def submit():
     selected_network = network_var.get()
     n_id = name_to_id(networks, selected_network)
@@ -49,18 +48,20 @@ def submit():
 
     root.destroy()
 
-    for rf in selected_rainfalls:
-        for r in roughness_values:
-            for w in weir_values:
-                for i in infiltration_values:
-                    run_simulation(n_id, rf, r_type, r, w, i)
+    sim_total = len(roughness_values) * len(weir_values) * len(infiltration_values)
 
-#Making folder for data
+    count = 1
+    for r in roughness_values:
+        for w in weir_values:
+            for i in infiltration_values:
+                for rf in selected_rainfalls:
+                    run_simulation(n_id, rf, r_type, r, w, i, count, sim_total)
+                    count += 1
+
 folder = os.getcwd() + "\\generated_data\\simulation_results"
 if not os.path.exists(folder):
     os.makedirs(f"{folder}")
 
-# Extracting Network and Rainfalls from database.
 path = os.getcwd() + "\\gui_app"
 if not os.path.exists(f'{path}\\networks.txt') or not os.path.exists(f'{path}\\networks.txt'):
     os.system('init.bat')
@@ -73,29 +74,25 @@ rainfall_parser = FileParser(f'{path}\\rainfalls.txt')
 rainfall_parser.parse()
 rainfalls = rainfall_parser.get_entries()
 
-# TODO: Add network exporting
 path = os.getcwd() + "\\generated_data\\network_exports"
 if not os.path.exists(path):
     os.makedirs(os.getcwd() + "\\generated_data\\network_exports")
     for n in networks:
         os.system(f"export_graph.bat {n.id}")
 
-# GUI
 root = tk.Tk()
-root.title("Simulation Runner Configurator")
+root.title("Simulation Configurator")
 root.geometry("800x600")
 root.resizable(True, True)
 
 padding = {'padx': 10, 'pady': 5}
 
-# --- Network Selection ---
 tk.Label(root, text="Select Network:").grid(row=0, column=0, sticky="w", **padding)
 network_var = tk.StringVar()
 network_dropdown = ttk.Combobox(root, textvariable=network_var, state="readonly")
 network_dropdown['values'] = [n.short for n in networks]
 network_dropdown.grid(row=0, column=1, sticky="ew", **padding)
 
-# --- Rainfall Selection with LabelFrame & Scroll ---
 rainfall_frame = ttk.LabelFrame(root, text="Select Rainfall(s):")
 rainfall_frame.grid(row=1, column=0, columnspan=2, sticky="nsew", **padding)
 rainfall_frame.grid_columnconfigure(0, weight=1)
@@ -131,14 +128,12 @@ for i, rf in enumerate(rainfalls):
     chk.grid(row=i, column=0, sticky="w")
     rainfall_vars[rf.id] = var
 
-# --- Roughness Type Selection ---
 tk.Label(root, text="Select Roughness Type:").grid(row=2, column=0, sticky="w", **padding)
 roughness_type_var = tk.StringVar()
 roughness_dropdown = ttk.Combobox(root, textvariable=roughness_type_var, state="readonly")
 roughness_dropdown['values'] = ("CW", "HW", "MANNING", "N")
 roughness_dropdown.grid(row=2, column=1, sticky="ew", **padding)
 
-# --- Range Input Helper ---
 def add_range_input(label, row, var_min, var_max, var_steps):
     tk.Label(root, text=label).grid(row=row, column=0, sticky="w", **padding)
     frame = tk.Frame(root)
@@ -153,7 +148,6 @@ def add_range_input(label, row, var_min, var_max, var_steps):
     tk.Label(frame, text="steps").grid(row=0, column=3)
     tk.Entry(frame, textvariable=var_steps, width=6).grid(row=0, column=4, sticky="ew", padx=(5, 0))
 
-# --- Range Input Fields ---
 roughness_min = tk.StringVar()
 roughness_max = tk.StringVar()
 roughness_steps = tk.StringVar()
@@ -170,11 +164,9 @@ add_range_input("Roughness Value:", 3, roughness_min, roughness_max, roughness_s
 add_range_input("Weir Coefficient:", 4, weir_min, weir_max, weir_steps)
 add_range_input("Initial Infiltration:", 5, infil_min, infil_max, infil_steps)
 
-# --- Save Button ---
-submit_button = tk.Button(root, text="Save Configuration", width=20, command=submit)
+submit_button = tk.Button(root, text="Run Simulations", width=20, command=submit)
 submit_button.grid(row=6, column=0, columnspan=2, pady=15)
 
-# --- Resizability ---
 root.grid_columnconfigure(1, weight=1)
 root.grid_rowconfigure(1, weight=1)
 
